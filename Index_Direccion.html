@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="<?= FAVICON_URL ?>">
+  <link rel="apple-touch-icon" href="<?= FAVICON_URL ?>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Panel Dirección">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#00655F">
+  <style>
+    :root { --teal:#00948A; --teal-dark:#00655F; --maroon:#AE1F2D; --bg:#F4F7F6; --card-border:#e2e2e2; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; margin:0; background:var(--bg); color:#222; font-size:16px; }
+    header { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+    header img { width:44px; height:44px; border-radius:6px; background:#fff; padding:2px; }
+    header .titles h1 { margin:0; font-size:17px; line-height:1.25; }
+    header .titles p { margin:2px 0 0; font-size:12px; opacity:0.9; }
+
+    .resumen { display:flex; gap:10px; margin:12px; flex-wrap:wrap; }
+    .resumen .item {
+      flex:1; min-width:130px; background:#fff; border-radius:10px; padding:12px 14px;
+      border-left:6px solid var(--teal-dark); box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    }
+    .resumen .item.correspondencia { border-left-color: var(--maroon); }
+    .resumen .item.atencion_hospitalaria { border-left-color: var(--teal-dark); }
+    .resumen .item.servicios_primarios { border-left-color: #2b7fb8; }
+    .resumen .item.asistencia { border-left-color: var(--teal); }
+    .resumen .item.juridico { border-left-color: #6b4fa0; }
+    .resumen .item.administrativo { border-left-color: #b8860b; }
+    .resumen .item .label { font-size:12px; color:#666; }
+    .resumen .item .value { font-size:22px; font-weight:bold; color:#222; }
+
+    .subtitulo { font-size:12px; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin:16px 12px 4px; }
+
+    .tabs { display:flex; background:#fff; border-bottom:1px solid #ddd; flex-wrap:wrap; }
+    .tab { flex:1; min-width:110px; padding:14px 4px; text-align:center; cursor:pointer; font-weight:bold; color:#666; font-size:12px; }
+    .tab.active { color:var(--teal-dark); border-bottom:3px solid var(--maroon); }
+    .panel { display:none; padding:16px; max-width:640px; margin:0 auto; }
+    .panel.active { display:block; }
+
+    .ayuda-tab { font-size:13px; color:#666; background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px 12px; margin-bottom:12px; line-height:1.4; }
+    label { display:block; margin-top:14px; font-size:14px; font-weight:bold; color:#333; }
+    input[type=text], input[type=date] { width:100%; padding:11px; margin-top:5px; border:1.5px solid #ccc; border-radius:6px; font-size:16px; }
+    .searchRow { display:flex; gap:8px; }
+    .searchRow input { flex:1; }
+    button { margin-top:20px; width:100%; padding:14px; background:var(--teal-dark); color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; }
+    details.avanzado { margin-top:14px; }
+    details.avanzado summary { cursor:pointer; color:var(--teal-dark); font-size:14px; font-weight:bold; padding:6px 0; }
+    .card { background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:12px 14px; margin-top:10px; }
+    .card .top { display:flex; justify-content:space-between; font-size:13px; color:#777; }
+    .card .asunto { font-weight:bold; margin:5px 0; font-size:15px; }
+    .card a { color:var(--teal-dark); font-size:14px; text-decoration:none; font-weight:bold; }
+    .loading { text-align:center; color:#888; padding:20px; font-size:14px; }
+    .msg { margin-top:12px; padding:12px; border-radius:6px; font-size:15px; display:none; line-height:1.4; }
+    .msg.err { background:#fdeaea; color:#c0392b; display:block; }
+    .msg .tecnico { display:block; margin-top:6px; font-size:12px; color:#999; font-weight:normal; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="<?= FAVICON_URL ?>" alt="Logo">
+    <div class="titles">
+      <h1>Panel de la Dirección General</h1>
+      <p>Documentos por área · Instituto de Salud de Chiapas</p>
+    </div>
+  </header>
+
+  <div class="resumen">
+    <div class="item correspondencia"><div class="label">Correspondencia · hoy</div><div class="value" id="res-correspondencia">…</div></div>
+    <div class="item atencion_hospitalaria"><div class="label">At. Hospitalaria · hoy</div><div class="value" id="res-atencion_hospitalaria">…</div></div>
+    <div class="item servicios_primarios"><div class="label">Serv. Primarios · hoy</div><div class="value" id="res-servicios_primarios">…</div></div>
+    <div class="item asistencia"><div class="label">Asistencia · hoy</div><div class="value" id="res-asistencia">…</div></div>
+    <div class="item juridico"><div class="label">Jurídico · hoy</div><div class="value" id="res-juridico">…</div></div>
+    <div class="item administrativo"><div class="label">Administrativo · hoy</div><div class="value" id="res-administrativo">…</div></div>
+  </div>
+
+  <div class="ayuda-tab" style="margin:0 12px 12px;">Vista de solo lectura. Cada pestaña muestra únicamente los documentos de esa área — nunca se mezclan entre sí. Correspondencia y las dos subdirecciones (Atención Hospitalaria, Servicios Médicos Primarios) llevan oficio/remitente/trámite; las tres áreas de apoyo (Asistencia, Jurídico, Administrativo) llevan un registro simplificado por asunto.</div>
+
+  <div class="tabs">
+    <div class="tab active" data-rol="correspondencia">Correspondencia</div>
+    <div class="tab" data-rol="atencion_hospitalaria">At. Hospitalaria</div>
+    <div class="tab" data-rol="servicios_primarios">Serv. Primarios</div>
+    <div class="tab" data-rol="asistencia">Asistencia</div>
+    <div class="tab" data-rol="juridico">Jurídico</div>
+    <div class="tab" data-rol="administrativo">Administrativo</div>
+  </div>
+
+  <div class="panel active" id="panel-correspondencia" data-rol="correspondencia"></div>
+  <div class="panel" id="panel-atencion_hospitalaria" data-rol="atencion_hospitalaria"></div>
+  <div class="panel" id="panel-servicios_primarios" data-rol="servicios_primarios"></div>
+  <div class="panel" id="panel-asistencia" data-rol="asistencia"></div>
+  <div class="panel" id="panel-juridico" data-rol="juridico"></div>
+  <div class="panel" id="panel-administrativo" data-rol="administrativo"></div>
+
+  <script>
+    const TOKEN = "<?= TOKEN ?>";
+    const RESULTADOS_POR_PAGINA = 20;
+
+    // Estado de búsqueda INDEPENDIENTE por cada área, para que cambiar de pestaña
+    // nunca mezcle los resultados/paginación de una con la de otra.
+    const estado = {
+      correspondencia: { offset: 0, total: 0, filtros: {}, token: 0, completo: true },
+      atencion_hospitalaria: { offset: 0, total: 0, filtros: {}, token: 0, completo: true },
+      servicios_primarios: { offset: 0, total: 0, filtros: {}, token: 0, completo: true },
+      asistencia: { offset: 0, total: 0, filtros: {}, token: 0, completo: false },
+      juridico: { offset: 0, total: 0, filtros: {}, token: 0, completo: false },
+      administrativo: { offset: 0, total: 0, filtros: {}, token: 0, completo: false }
+    };
+    const AREAS = ['correspondencia', 'atencion_hospitalaria', 'servicios_primarios', 'asistencia', 'juridico', 'administrativo'];
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function construirPanel(rol) {
+      const panel = document.getElementById('panel-' + rol);
+      const hintCarpeta = !estado[rol].completo
+        ? '<p style="font-size:12px;color:#888;margin:4px 0 0;">La búsqueda también encuentra por nombre de carpeta.</p>'
+        : '';
+      panel.innerHTML =
+        '<div class="searchRow">' +
+          '<input type="text" id="texto-' + rol + '" placeholder="Buscar...">' +
+          '<button style="width:auto;margin-top:0;" onclick="buscar(\'' + rol + '\')">Buscar</button>' +
+        '</div>' +
+        hintCarpeta +
+        '<details class="avanzado">' +
+          '<summary>Filtrar por fecha (opcional)</summary>' +
+          '<label>Desde</label><input type="date" id="desde-' + rol + '">' +
+          '<label>Hasta</label><input type="date" id="hasta-' + rol + '">' +
+          '<button onclick="buscar(\'' + rol + '\')">Filtrar</button>' +
+        '</details>' +
+        '<div id="resultados-' + rol + '"></div>';
+    }
+    AREAS.forEach(construirPanel);
+
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const rol = t.dataset.rol;
+        document.getElementById('panel-' + rol).classList.add('active');
+        if (!estado[rol].cargado) { buscar(rol); estado[rol].cargado = true; }
+      });
+    });
+
+    function cargarResumen() {
+      google.script.run
+        .withSuccessHandler(function (r) {
+          AREAS.forEach(function (rol) {
+            const el = document.getElementById('res-' + rol);
+            if (el) el.innerText = (r && r[rol] !== undefined) ? r[rol] : '—';
+          });
+        })
+        .withFailureHandler(function (err) {
+          console.error('obtenerResumenHoyDireccion:', err.message);
+        })
+        .obtenerResumenHoyDireccion(TOKEN);
+    }
+    cargarResumen();
+
+    function pintar(rol, rows, agregar) {
+      const completo = estado[rol].completo;
+      const div = document.getElementById('resultados-' + rol);
+      const btnViejo = document.getElementById('btnCargarMas-' + rol);
+      if (btnViejo) btnViejo.remove();
+      const pieViejo = document.getElementById('pie-' + rol);
+      if (pieViejo) pieViejo.remove();
+
+      if (!rows.length && !agregar) {
+        div.innerHTML = '<div class="loading">No hay documentos con esos datos.</div>';
+        return;
+      }
+
+      const html = rows.map(function (r) {
+        if (completo) {
+          return '<div class="card">' +
+            '<div class="top"><span>' + r.fecha + ' · #' + r.consecutivo + '</span><span>' + (r.oficio || '') + '</span></div>' +
+            '<div class="asunto">' + (r.asunto || '') + '</div>' +
+            '<div>De: ' + (r.remitente || '') + '</div>' +
+            '<div>Trámite/Destino: ' + (r.tramite || '<em style="color:#aaa;">(sin definir)</em>') + '</div>' +
+            (r.enlace ? '<a href="' + r.enlace + '" target="_blank">📄 Ver el documento →</a>' : '') +
+            '</div>';
+        }
+        return '<div class="card">' +
+          '<div class="top"><span>' + r.fecha + ' · #' + r.consecutivo + ' · ' + r.hora + '</span><span>' + (r.registradoPor || '') + '</span></div>' +
+          (r.asunto ? '<div class="asunto">' + escapeHtml(r.asunto) + '</div>' : '') +
+          (r.carpeta ? '<div style="font-size:13px;color:#666;">🗂️ Carpeta: ' + escapeHtml(r.carpeta) + '</div>' : '') +
+          (r.observaciones ? '<div>' + r.observaciones + '</div>' : '') +
+          (r.enlace ? '<a href="' + r.enlace + '" target="_blank">📄 Ver el documento →</a>' : '') +
+          '</div>';
+      }).join('');
+
+      if (agregar) div.insertAdjacentHTML('beforeend', html);
+      else div.innerHTML = html;
+
+      if (!estado[rol].total) return;
+      const mostrados = div.querySelectorAll('.card').length;
+      const pie = document.createElement('div');
+      pie.id = 'pie-' + rol;
+      pie.style.textAlign = 'center';
+      pie.style.marginTop = '14px';
+      const resumen = document.createElement('p');
+      resumen.style.fontSize = '13px';
+      resumen.style.color = '#777';
+      resumen.innerText = 'Mostrando ' + mostrados + ' de ' + estado[rol].total;
+      pie.appendChild(resumen);
+      if (mostrados < estado[rol].total) {
+        const btn = document.createElement('button');
+        btn.id = 'btnCargarMas-' + rol;
+        btn.type = 'button';
+        btn.innerText = 'Cargar más';
+        btn.onclick = function () { cargarMas(rol); };
+        pie.appendChild(btn);
+      }
+      div.appendChild(pie);
+    }
+
+    function buscar(rol) {
+      estado[rol].offset = 0;
+      estado[rol].filtros = {
+        texto: document.getElementById('texto-' + rol).value,
+        fechaInicio: document.getElementById('desde-' + rol).value,
+        fechaFin: document.getElementById('hasta-' + rol).value
+      };
+      ejecutar(rol, false);
+    }
+
+    function cargarMas(rol) { ejecutar(rol, true); }
+
+    function ejecutar(rol, agregar) {
+      const div = document.getElementById('resultados-' + rol);
+      if (!agregar) div.innerHTML = '<div class="loading">Buscando…</div>';
+      const miToken = ++estado[rol].token;
+      const filtros = Object.assign({}, estado[rol].filtros, { offset: estado[rol].offset, limite: RESULTADOS_POR_PAGINA });
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (miToken !== estado[rol].token) return;
+          if (!res || res.ok !== true) {
+            div.innerHTML = '<div class="msg err" style="display:block;">No se pudo completar la búsqueda.' +
+              '<span class="tecnico">Detalle técnico: ' + (res && res.error ? res.error : 'respuesta inesperada') + '</span></div>';
+            return;
+          }
+          estado[rol].total = res.total;
+          pintar(rol, res.rows, agregar);
+          estado[rol].offset += res.rows.length;
+        })
+        .withFailureHandler(function (err) {
+          if (miToken !== estado[rol].token) return;
+          div.innerHTML = '<div class="msg err" style="display:block;">No se pudo completar la búsqueda. Revisa tu conexión.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span></div>';
+        })
+        .buscarDocumentosDireccion(TOKEN, rol, filtros);
+    }
+
+    // Carga inicial de la primera pestaña (Correspondencia)
+    buscar('correspondencia');
+    estado.correspondencia.cargado = true;
+  </script>
+</body>
+</html>

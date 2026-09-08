@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="<?= FAVICON_URL ?>">
+  <link rel="apple-touch-icon" href="<?= FAVICON_URL ?>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="At. Hospitalaria">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="At. Hospitalaria">
+  <meta name="theme-color" content="#00655F">
+  <style>
+    :root {
+      --teal: #00948A;
+      --teal-dark: #00655F;
+      --maroon: #AE1F2D;
+      --bg: #F4F7F6;
+      --card-border: #e2e2e2;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; background: var(--bg); color: #222; font-size: 16px; }
+
+    header {
+      background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+      color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    header img { width: 44px; height: 44px; border-radius: 6px; background: #fff; padding: 2px; }
+    header .titles h1 { margin: 0; font-size: 17px; line-height: 1.25; }
+    header .titles p { margin: 2px 0 0; font-size: 12px; opacity: 0.9; }
+
+    .counter {
+      background: #fff; margin: 12px; border-radius: 10px; padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-left: 6px solid var(--maroon); box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .counter .label { font-size: 14px; color: #555; }
+    .counter .value { font-size: 28px; font-weight: bold; color: var(--maroon); }
+
+    .tabs { display: flex; background: #fff; border-bottom: 1px solid #ddd; }
+    .tab { flex: 1; padding: 14px 4px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 14px; }
+    .tab.active { color: var(--teal-dark); border-bottom: 3px solid var(--maroon); }
+    .panel { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+    .panel.active { display: block; }
+    label { display: block; margin-top: 14px; font-size: 14px; font-weight: bold; color: #333; }
+    .hint { margin: 4px 0 0; font-size: 13px; color: #777; font-weight: normal; line-height: 1.4; }
+    input[type=text], input[type=date], textarea, select {
+      width: 100%; padding: 11px; margin-top: 5px; border: 1.5px solid #ccc; border-radius: 6px; font-size: 16px;
+    }
+    input[type=text]:focus, input[type=date]:focus, textarea:focus {
+      outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,148,138,0.15);
+    }
+    textarea { resize: vertical; min-height: 55px; }
+    button {
+      margin-top: 20px; width: 100%; padding: 14px; background: var(--teal-dark); color: #fff;
+      border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+    }
+    button.secondary { background: var(--maroon); }
+    button:disabled { background: #a9c4c1; }
+    .badge {
+      display: inline-block; background: #e3f3f1; color: var(--teal-dark); padding: 6px 12px;
+      border-radius: 20px; font-size: 14px; margin-top: 8px; font-weight: bold;
+    }
+    .msg { margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 15px; display:none; line-height: 1.4; }
+    .msg.ok { background: #e6f4ea; color: #1e7e34; display:block; font-weight: bold; }
+    .msg.err { background: #fdeaea; color: #c0392b; display:block; }
+    .msg .tecnico { display: block; margin-top: 6px; font-size: 12px; color: #999; font-weight: normal; }
+    .card {
+      background: #fff; border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 14px; margin-top: 10px;
+    }
+    .card .top { display: flex; justify-content: space-between; font-size: 13px; color: #777; }
+    .card .asunto { font-weight: bold; margin: 5px 0; font-size: 15px; }
+    .card a { color: var(--teal-dark); font-size: 14px; text-decoration: none; font-weight: bold; }
+    .searchRow { display: flex; gap: 8px; }
+    .searchRow input { flex: 1; }
+    .loading { text-align: center; color: #888; padding: 20px; font-size: 14px; }
+    .linkbox { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .linkbox a {
+      display: block; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none;
+      font-weight: bold; font-size: 15px; border: 1px solid var(--teal-dark); color: var(--teal-dark);
+    }
+    .linkbox a.primary { background: var(--teal-dark); color: #fff; font-size: 17px; padding: 15px; }
+
+    .toggle-row {
+      display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 10px 12px;
+      background: #fff; border: 1px solid var(--card-border); border-radius: 8px; cursor: pointer; user-select: none;
+    }
+    .toggle-row input[type=checkbox] { width: 22px; height: 22px; margin: 0; accent-color: var(--teal-dark); flex-shrink: 0; }
+    .toggle-row span { font-size: 14px; color: #444; }
+    .toggle-extra { display: none; margin-top: 4px; }
+    .toggle-extra.open { display: block; }
+
+    .filebox {
+      margin-top: 5px; border: 2px dashed #ccc; border-radius: 8px; padding: 14px; text-align: center; background: #fff;
+    }
+    .filebox input[type=file] { width: 100%; font-size: 14px; }
+    .filebox .archivo-ok {
+      display: none; margin-top: 10px; padding: 10px; background: #e6f4ea; color: #1e7e34;
+      border-radius: 6px; font-size: 14px; font-weight: bold; word-break: break-all;
+    }
+    .filebox .archivo-ok.show { display: block; }
+
+    details.avanzado { margin-top: 14px; }
+    details.avanzado summary {
+      cursor: pointer; color: var(--teal-dark); font-size: 14px; font-weight: bold; padding: 6px 0;
+    }
+    details.avanzado[open] summary { margin-bottom: 6px; }
+
+    .banner-exito {
+      display: none; position: sticky; top: 0; z-index: 10; background: #1e7e34; color: #fff;
+      padding: 14px 16px; text-align: center; font-size: 16px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .banner-exito.show { display: block; }
+
+    .ayuda-tab { font-size: 13px; color: #666; background: #fff; border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.4; }
+
+    .edit-banner {
+      display: none; font-size: 14px; color: #7a1420; background: #fdeceb; border: 1.5px solid var(--maroon);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 4px; line-height: 1.4;
+    }
+    .edit-banner.show { display: block; }
+    .edit-banner strong { display: block; margin-bottom: 4px; }
+    .edit-banner a { color: var(--maroon); font-weight: bold; text-decoration: none; }
+    .archivo-actual { font-size: 13px; color: #555; margin-top: 8px; }
+    .archivo-actual a { color: var(--teal-dark); font-weight: bold; text-decoration: none; }
+    .card .editar-link { margin-left: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="<?= FAVICON_URL ?>" alt="Logo">
+    <div class="titles">
+      <h1>Sistema de Archivos — Subdirección de Atención Hospitalaria</h1>
+      <p>Instituto de Salud de Chiapas</p>
+    </div>
+  </header>
+
+  <div class="banner-exito" id="bannerExito">✓ Guardado correctamente</div>
+
+  <div class="counter">
+    <span class="label">📥 Hoy has registrado</span>
+    <span class="value" id="contadorHoy">…</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="registrar">📝 Registrar</div>
+    <div class="tab" data-tab="consultar">🔍 Buscar</div>
+    <div class="tab" data-tab="documento">🖨️ Imprimir lista</div>
+  </div>
+
+  <!-- ============ PANEL REGISTRAR ============ -->
+  <div class="panel active" id="panel-registrar">
+    <div class="edit-banner" id="editBanner">
+      <strong id="editBannerTexto"></strong>
+      <a href="#" onclick="cancelarEdicion(); return false;">✕ Cancelar edición y volver a registrar uno nuevo</a>
+    </div>
+    <span class="badge" id="consecutivoBadge">Cargando…</span>
+
+    <label>Número de oficio *</label>
+    <input type="text" id="numeroOficio" placeholder="Ej. OF-1234-2026">
+
+    <label>¿Quién lo envía? *</label>
+    <input type="text" id="remitente" placeholder="Nombre de la persona y/o del área o institución">
+
+    <label>Asunto *</label>
+    <textarea id="asunto" placeholder="¿De qué trata el documento?"></textarea>
+
+    <label id="labelArchivo">Documento escaneado (PDF) *</label>
+    <div class="filebox">
+      <input type="file" id="archivo" accept="application/pdf" onchange="mostrarArchivoSeleccionado()">
+      <div class="archivo-ok" id="archivoOk"></div>
+      <div class="archivo-actual" id="archivoActual" style="display:none;"></div>
+    </div>
+
+    <div id="bloqueAtrasado">
+      <div class="toggle-row" onclick="document.getElementById('chkAtrasado').click()">
+        <input type="checkbox" id="chkAtrasado" onclick="event.stopPropagation(); toggleAtrasado();">
+        <span>Este documento llegó otro día (no hoy)</span>
+      </div>
+      <div class="toggle-extra" id="extraAtrasado">
+        <label>¿Qué día se recibió?</label>
+        <input type="date" id="fechaRegistro">
+        <p class="hint">El número de folio de ese día se ajusta solo — no tienes que calcular nada.</p>
+      </div>
+    </div>
+
+    <details class="avanzado">
+      <summary>¿Ya sabes a qué trámite o área se destina? (opcional)</summary>
+      <label>Trámite o destino</label>
+      <input type="text" id="tramite" placeholder="Normalmente esto lo define quien recibe el trámite">
+      <p class="hint">Si no lo sabes, no pasa nada — déjalo vacío y se completa después.</p>
+    </details>
+
+    <details class="avanzado">
+      <summary>Más datos (opcional)</summary>
+      <label>Registrado por</label>
+      <input type="text" id="registradoPor" placeholder="Tu nombre">
+      <p class="hint">Se recuerda automáticamente para la próxima vez.</p>
+
+      <label>Observaciones</label>
+      <textarea id="observaciones" placeholder="Cualquier nota adicional"></textarea>
+    </details>
+
+    <button id="btnGuardar" onclick="guardar()">✓ Guardar este documento</button>
+    <div class="msg" id="msgRegistrar"></div>
+  </div>
+
+  <!-- ============ PANEL CONSULTAR ============ -->
+  <div class="panel" id="panel-consultar">
+    <div class="ayuda-tab">Escribe una parte del oficio, el nombre de quien lo envía o el asunto, y aparecerán los documentos que coincidan. Si no escribes nada, se muestran todos.</div>
+
+    <div class="searchRow">
+      <input type="text" id="buscarTexto" placeholder="Ej. un nombre, un número de oficio...">
+      <button style="width:auto; margin-top:0;" onclick="buscar()">Buscar</button>
+    </div>
+
+    <details class="avanzado">
+      <summary>Buscar por rango de fechas (opcional)</summary>
+      <label>Desde</label>
+      <input type="date" id="fechaInicio">
+      <label>Hasta</label>
+      <input type="date" id="fechaFin">
+      <button onclick="buscar()">Filtrar por fecha</button>
+    </details>
+
+    <div id="resultados"></div>
+
+    <details class="avanzado" style="margin-top:20px;">
+      <summary>Ver todo en una tabla (para soporte técnico)</summary>
+      <a id="linkSheets" href="#" target="_blank" style="display:none; text-align:center; padding:10px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:13px; background:#e3f3f1; color:var(--teal-dark); border:1px solid var(--teal-dark); margin-top:6px;">
+        📊 Abrir hoja de cálculo completa (Google Sheets) →
+      </a>
+    </details>
+  </div>
+
+  <!-- ============ PANEL DOCUMENTO DEL DÍA ============ -->
+  <div class="panel" id="panel-documento">
+    <div class="ayuda-tab">Esto arma la lista de todos los documentos de un día, en el mismo formato que se usa para el seguimiento de trámites, lista para imprimir.</div>
+
+    <label>¿De qué día quieres la lista?</label>
+    <input type="date" id="fechaDoc">
+    <span class="badge" id="conteoFechaDoc">Selecciona una fecha…</span>
+
+    <button id="btnGenerar" onclick="generarDocumento()">🖨️ Preparar lista de ese día</button>
+    <div class="msg" id="msgDocumento"></div>
+    <div class="linkbox" id="linksDocumento"></div>
+  </div>
+
+  <script>
+    // Token secreto de esta área, incrustado por el servidor en doGet(). Se envía en
+    // TODAS las llamadas a google.script.run para que el servidor pueda verificar que
+    // esta pantalla solo toque los datos de Atención Hospitalaria (ver verificarRol_
+    // en Code.gs). Este token es EL MISMO que ya se usaba bajo el nombre "Correspondencia".
+    const TOKEN = "<?= TOKEN ?>";
+
+    // ---- Navegación de pestañas ----
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+        if (t.dataset.tab === 'consultar') buscar();
+      });
+    });
+
+    // ---- Contador de hoy (barra superior) ----
+    function cargarContadorHoy() {
+      google.script.run
+        .withSuccessHandler(function (n) {
+          document.getElementById('contadorHoy').innerText = n;
+        })
+        .withFailureHandler(function (err) {
+          document.getElementById('contadorHoy').innerText = '⚠️';
+          console.error('obtenerConteoHoyAtencionHospitalaria:', err.message);
+        })
+        .obtenerConteoHoyAtencionHospitalaria(TOKEN);
+    }
+    cargarContadorHoy();
+
+    // ---- Enlace a la hoja de cálculo (pestaña consultar) ----
+    function cargarEnlaceHoja() {
+      const link = document.getElementById('linkSheets');
+      google.script.run
+        .withSuccessHandler(function (url) {
+          link.href = url;
+          link.style.display = 'block';
+        })
+        .withFailureHandler(function (err) {
+          console.error('obtenerEnlaceHoja:', err.message);
+        })
+        .obtenerEnlaceHojaAtencionHospitalaria(TOKEN);
+    }
+    cargarEnlaceHoja();
+
+    // ---- Fecha de recepción y consecutivo (pestaña registrar) ----
+    const fechaRegistroInput = document.getElementById('fechaRegistro');
+    fechaRegistroInput.value = hoyISO();
+    const chkAtrasado = document.getElementById('chkAtrasado');
+    const extraAtrasado = document.getElementById('extraAtrasado');
+
+    function toggleAtrasado() {
+      if (chkAtrasado.checked) {
+        extraAtrasado.classList.add('open');
+      } else {
+        extraAtrasado.classList.remove('open');
+        fechaRegistroInput.value = hoyISO();
+      }
+      cargarConsecutivo();
+    }
+
+    function cargarConsecutivo() {
+      const fecha = fechaRegistroInput.value || hoyISO();
+      const badge = document.getElementById('consecutivoBadge');
+      const esHoy = fecha === hoyISO();
+      badge.innerText = 'Calculando número de folio…';
+      google.script.run
+        .withSuccessHandler(function (n) {
+          badge.innerText = esHoy
+            ? ('Este será el documento número ' + n + ' de hoy')
+            : ('Será el número ' + n + ' del ' + fecha);
+        })
+        .withFailureHandler(function (err) {
+          badge.innerText = 'No se pudo calcular el número de folio. Intenta recargar la página.';
+        })
+        .obtenerSiguienteConsecutivoAtencionHospitalaria(TOKEN, fecha);
+    }
+    fechaRegistroInput.addEventListener('change', cargarConsecutivo);
+    cargarConsecutivo();
+
+    // ---- Confirmación visual del archivo elegido ----
+    function mostrarArchivoSeleccionado() {
+      const fileInput = document.getElementById('archivo');
+      const caja = document.getElementById('archivoOk');
+      if (fileInput.files[0]) {
+        caja.innerText = '✓ Archivo listo: ' + fileInput.files[0].name;
+        caja.classList.add('show');
+      } else {
+        caja.classList.remove('show');
+      }
+    }
+
+    // ---- Recordar el nombre de quien registra, para no escribirlo cada vez ----
+    const registradoPorInput = document.getElementById('registradoPor');
+    try {
+      const nombreGuardado = localStorage.getItem('dam_atencion_hospitalaria_registrado_por');
+      if (nombreGuardado) registradoPorInput.value = nombreGuardado;
+    } catch (e) { /* si el navegador bloquea localStorage, simplemente no se recuerda */ }
+
+    // ---- Mensaje de éxito bien visible arriba ----
+    function mostrarBannerExito(texto) {
+      const banner = document.getElementById('bannerExito');
+      banner.innerText = texto;
+      banner.classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(function () { banner.classList.remove('show'); }, 5000);
+    }
+
+    // ---- Modo edición: corregir un documento ya registrado ----
+    let modoEdicion = null;
+
+    function cargarParaEditar(fecha, consecutivo) {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      document.querySelector('.tab[data-tab="registrar"]').classList.add('active');
+      document.getElementById('panel-registrar').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const msg = document.getElementById('msgRegistrar');
+      msg.className = 'msg'; msg.style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res.ok) {
+            msg.className = 'msg err';
+            msg.innerText = res.error;
+            return;
+          }
+          modoEdicion = {
+            fecha: res.doc.fecha,
+            consecutivo: res.doc.consecutivo,
+            original: {
+              oficio: res.doc.oficio,
+              remitente: res.doc.remitente,
+              asunto: res.doc.asunto,
+              tramite: res.doc.tramite,
+              registradoPor: res.doc.registradoPor,
+              observaciones: res.doc.observaciones
+            }
+          };
+
+          document.getElementById('numeroOficio').value = res.doc.oficio;
+          document.getElementById('remitente').value = res.doc.remitente;
+          document.getElementById('asunto').value = res.doc.asunto;
+          document.getElementById('tramite').value = res.doc.tramite;
+          document.getElementById('registradoPor').value = res.doc.registradoPor;
+          document.getElementById('observaciones').value = res.doc.observaciones;
+
+          const archivoActual = document.getElementById('archivoActual');
+          if (res.doc.enlace) {
+            archivoActual.innerHTML = 'Archivo actual: <a href="' + res.doc.enlace + '" target="_blank">ver PDF →</a>';
+            archivoActual.style.display = 'block';
+          } else {
+            archivoActual.style.display = 'none';
+          }
+          document.getElementById('labelArchivo').innerText = 'Reemplazar el PDF (opcional)';
+          document.getElementById('archivo').value = '';
+          document.getElementById('archivoOk').classList.remove('show');
+
+          document.getElementById('bloqueAtrasado').style.display = 'none';
+          document.getElementById('consecutivoBadge').style.display = 'none';
+
+          document.getElementById('editBannerTexto').innerText =
+            '✏️ Corrigiendo el documento número ' + res.doc.consecutivo + ' del ' + res.doc.fecha;
+          document.getElementById('editBanner').classList.add('show');
+
+          document.getElementById('btnGuardar').innerText = '💾 Guardar cambios';
+        })
+        .withFailureHandler(function (err) {
+          msg.className = 'msg err';
+          msg.innerHTML = 'No se pudo cargar el documento. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+        })
+        .obtenerDocumentoAtencionHospitalaria(TOKEN, fecha, consecutivo);
+    }
+
+    function cancelarEdicion() {
+      modoEdicion = null;
+      ['numeroOficio','remitente','asunto','tramite','observaciones'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('archivo').value = '';
+      document.getElementById('archivoOk').classList.remove('show');
+      document.getElementById('archivoActual').style.display = 'none';
+      document.getElementById('labelArchivo').innerText = 'Documento escaneado (PDF) *';
+      document.getElementById('bloqueAtrasado').style.display = '';
+      document.getElementById('consecutivoBadge').style.display = '';
+      document.getElementById('editBanner').classList.remove('show');
+      document.getElementById('btnGuardar').innerText = '✓ Guardar este documento';
+      const msg = document.getElementById('msgRegistrar');
+      msg.className = 'msg'; msg.style.display = 'none';
+      cargarConsecutivo();
+    }
+
+    // ---- Guardar registro (nuevo o edición) ----
+    function guardar() {
+      const oficio = document.getElementById('numeroOficio').value.trim();
+      const remitente = document.getElementById('remitente').value.trim();
+      const asunto = document.getElementById('asunto').value.trim();
+      const tramite = document.getElementById('tramite').value.trim();
+      const fileInput = document.getElementById('archivo');
+      const msg = document.getElementById('msgRegistrar');
+      const registradoPor = registradoPorInput.value.trim();
+      const observaciones = document.getElementById('observaciones').value.trim();
+
+      const faltantes = [];
+      if (!oficio) faltantes.push('el número de oficio');
+      if (!remitente) faltantes.push('quién lo envía');
+      if (!asunto) faltantes.push('el asunto');
+      if (!modoEdicion && !fileInput.files[0]) faltantes.push('el archivo PDF escaneado');
+
+      if (faltantes.length) {
+        msg.className = 'msg err';
+        msg.innerText = 'Falta completar: ' + faltantes.join(', ') + '.';
+        return;
+      }
+
+      const btn = document.getElementById('btnGuardar');
+      btn.disabled = true;
+      btn.innerText = modoEdicion ? 'Guardando cambios…' : 'Guardando…';
+      msg.className = 'msg';
+      msg.style.display = 'none';
+
+      try {
+        if (registradoPor) localStorage.setItem('dam_atencion_hospitalaria_registrado_por', registradoPor);
+      } catch (e) { /* si el navegador bloquea localStorage, no pasa nada grave */ }
+
+      function terminar(res) {
+        btn.disabled = false;
+        btn.innerText = modoEdicion ? '💾 Guardar cambios' : '✓ Guardar este documento';
+        if (!res.ok) {
+          msg.className = 'msg err';
+          msg.innerHTML = 'No se pudo guardar. Intenta de nuevo, y si sigue fallando avísale a soporte.' +
+            '<span class="tecnico">Detalle técnico: ' + res.error + '</span>';
+          return;
+        }
+        if (modoEdicion) {
+          mostrarBannerExito('✓ Cambios guardados correctamente.');
+          cancelarEdicion();
+          document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+          document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+          document.querySelector('.tab[data-tab="consultar"]').classList.add('active');
+          document.getElementById('panel-consultar').classList.add('active');
+          buscar();
+        } else {
+          const textoExito = (res.fecha === hoyISO())
+            ? ('Guardado como el documento número ' + res.consecutivo + ' de hoy.')
+            : ('Guardado como atrasado — documento número ' + res.consecutivo + ' del ' + res.fecha + '.');
+          msg.className = 'msg ok';
+          msg.innerText = textoExito;
+          mostrarBannerExito('✓ ' + textoExito);
+          ['numeroOficio','remitente','asunto','tramite','observaciones'].forEach(id => document.getElementById(id).value = '');
+          fileInput.value = '';
+          document.getElementById('archivoOk').classList.remove('show');
+          if (chkAtrasado.checked) {
+            chkAtrasado.checked = false;
+            toggleAtrasado();
+          } else {
+            cargarConsecutivo();
+          }
+          cargarContadorHoy();
+        }
+      }
+
+      function fallar(err) {
+        btn.disabled = false;
+        btn.innerText = modoEdicion ? '💾 Guardar cambios' : '✓ Guardar este documento';
+        msg.className = 'msg err';
+        msg.innerHTML = 'No se pudo guardar. Revisa tu conexión a internet e intenta de nuevo.' +
+          '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+      }
+
+      function enviar(base64, tipo) {
+        if (modoEdicion) {
+          google.script.run
+            .withSuccessHandler(terminar)
+            .withFailureHandler(fallar)
+            .editarDocumentoAtencionHospitalaria(TOKEN, {
+              fecha: modoEdicion.fecha,
+              consecutivo: modoEdicion.consecutivo,
+              numeroOficio: oficio,
+              remitente: remitente,
+              asunto: asunto,
+              tramite: tramite,
+              registradoPor: registradoPor,
+              observaciones: observaciones,
+              archivoBase64: base64,
+              archivoTipo: tipo,
+              original: modoEdicion.original
+            });
+        } else {
+          google.script.run
+            .withSuccessHandler(terminar)
+            .withFailureHandler(fallar)
+            .registrarDocumentoAtencionHospitalaria(TOKEN, {
+              fecha: fechaRegistroInput.value || hoyISO(),
+              numeroOficio: oficio,
+              remitente: remitente,
+              asunto: asunto,
+              tramite: tramite,
+              registradoPor: registradoPor,
+              observaciones: observaciones,
+              archivoBase64: base64,
+              archivoNombre: fileInput.files[0] ? fileInput.files[0].name : '',
+              archivoTipo: fileInput.files[0] ? fileInput.files[0].type : ''
+            });
+        }
+      }
+
+      if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          enviar(reader.result.split(',')[1], fileInput.files[0].type);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        enviar(null, null);
+      }
+    }
+
+    // ---- Buscar / consultar (con paginación) ----
+    let buscarToken = 0;
+    const RESULTADOS_POR_PAGINA = 20;
+    let buscarOffsetActual = 0;
+    let buscarFiltrosActuales = null;
+    let buscarTotalActual = 0;
+
+    function pintarResultados(rows, agregar) {
+      const div = document.getElementById('resultados');
+      const btnViejo = document.getElementById('btnCargarMas');
+      if (btnViejo) btnViejo.remove();
+      const pieViejo = document.getElementById('pieResultados');
+      if (pieViejo) pieViejo.remove();
+
+      if (!rows.length && !agregar) {
+        div.innerHTML = '<div class="loading">No se encontró ningún documento con esos datos. Intenta escribir menos texto, o revisa que esté bien escrito.</div>';
+        return;
+      }
+
+      const html = rows.map(function (r) {
+        return '<div class="card">' +
+          '<div class="top"><span>' + r.fecha + ' · #' + r.consecutivo + '</span><span>' + (r.oficio || '') + '</span></div>' +
+          '<div class="asunto">' + (r.asunto || '') + '</div>' +
+          '<div>De: ' + (r.remitente || '') + '</div>' +
+          '<div>Trámite/Destino: ' + (r.tramite || '<em style="color:#aaa;">(sin definir aún)</em>') + '</div>' +
+          (r.enlace ? '<a href="' + r.enlace + '" target="_blank">📄 Ver el documento →</a>' : '') +
+          '<a class="editar-link" href="#" onclick="cargarParaEditar(\'' + r.fecha + '\', ' + r.consecutivo + '); return false;">✏️ Corregir datos →</a>' +
+          '</div>';
+      }).join('');
+
+      if (agregar) {
+        div.insertAdjacentHTML('beforeend', html);
+      } else {
+        div.innerHTML = html;
+      }
+    }
+
+    function pintarPiePagina() {
+      const div = document.getElementById('resultados');
+      if (!buscarTotalActual) return;
+
+      const mostrados = document.querySelectorAll('#resultados .card').length;
+      const pie = document.createElement('div');
+      pie.id = 'pieResultados';
+      pie.style.textAlign = 'center';
+      pie.style.marginTop = '14px';
+
+      const resumen = document.createElement('p');
+      resumen.className = 'hint';
+      resumen.style.textAlign = 'center';
+      resumen.innerText = 'Mostrando ' + mostrados + ' de ' + buscarTotalActual + ' documentos';
+      pie.appendChild(resumen);
+
+      if (mostrados < buscarTotalActual) {
+        const btn = document.createElement('button');
+        btn.id = 'btnCargarMas';
+        btn.type = 'button';
+        btn.innerText = 'Cargar más';
+        btn.style.marginTop = '4px';
+        btn.onclick = cargarMasResultados;
+        pie.appendChild(btn);
+      }
+      div.appendChild(pie);
+    }
+
+    function buscar() {
+      buscarOffsetActual = 0;
+      buscarFiltrosActuales = {
+        texto: document.getElementById('buscarTexto').value,
+        fechaInicio: document.getElementById('fechaInicio').value,
+        fechaFin: document.getElementById('fechaFin').value
+      };
+      ejecutarBusqueda(false);
+    }
+
+    function cargarMasResultados() {
+      ejecutarBusqueda(true);
+    }
+
+    function ejecutarBusqueda(agregar) {
+      const div = document.getElementById('resultados');
+      if (!agregar) div.innerHTML = '<div class="loading">Buscando…</div>';
+
+      const miToken = ++buscarToken;
+
+      const timeoutId = setTimeout(function () {
+        if (miToken === buscarToken) {
+          div.innerHTML = '<div class="msg err" style="display:block;">' +
+            'Esto está tardando más de lo normal. ' +
+            '<a href="#" onclick="buscar(); return false;">Toca aquí para intentar de nuevo</a>.</div>';
+        }
+      }, 20000);
+
+      const filtros = Object.assign({}, buscarFiltrosActuales, {
+        offset: buscarOffsetActual,
+        limite: RESULTADOS_POR_PAGINA
+      });
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (miToken !== buscarToken) return;
+          clearTimeout(timeoutId);
+          if (!res || res.ok !== true) {
+            div.innerHTML = '<div class="msg err" style="display:block;">No se pudo completar la búsqueda. Intenta de nuevo.' +
+              '<span class="tecnico">Detalle técnico: ' + (res && res.error ? res.error : 'respuesta inesperada del servidor') + '</span></div>';
+            return;
+          }
+          buscarTotalActual = res.total;
+          pintarResultados(res.rows, agregar);
+          buscarOffsetActual += res.rows.length;
+          pintarPiePagina();
+        })
+        .withFailureHandler(function (err) {
+          if (miToken !== buscarToken) return;
+          clearTimeout(timeoutId);
+          div.innerHTML = '<div class="msg err" style="display:block;">No se pudo completar la búsqueda. Revisa tu conexión e intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span></div>';
+        })
+        .buscarDocumentosAtencionHospitalaria(TOKEN, filtros);
+    }
+
+    // ---- Documento imprimible del día ----
+    function hoyISO() {
+      const d = new Date();
+      const tz = d.getTimezoneOffset() * 60000;
+      return new Date(d - tz).toISOString().slice(0, 10);
+    }
+    const fechaDocInput = document.getElementById('fechaDoc');
+    fechaDocInput.value = hoyISO();
+
+    function cargarConteoFechaDoc() {
+      const fecha = fechaDocInput.value;
+      const badge = document.getElementById('conteoFechaDoc');
+      if (!fecha) { badge.innerText = 'Selecciona una fecha…'; return; }
+      badge.innerText = 'Consultando…';
+      google.script.run
+        .withSuccessHandler(function (n) {
+          badge.innerText = (n === 0)
+            ? 'Ese día no hay documentos registrados'
+            : ('Ese día hay ' + n + (n === 1 ? ' documento registrado' : ' documentos registrados'));
+        })
+        .withFailureHandler(function (err) {
+          badge.innerText = 'No se pudo consultar. Intenta de nuevo.';
+        })
+        .contarRegistrosPorFechaAtencionHospitalaria(TOKEN, fecha);
+    }
+    fechaDocInput.addEventListener('change', cargarConteoFechaDoc);
+    cargarConteoFechaDoc();
+
+    function generarDocumento() {
+      const fecha = fechaDocInput.value;
+      const msg = document.getElementById('msgDocumento');
+      const links = document.getElementById('linksDocumento');
+      links.innerHTML = '';
+      if (!fecha) {
+        msg.className = 'msg err';
+        msg.innerText = 'Primero elige un día.';
+        return;
+      }
+      const btn = document.getElementById('btnGenerar');
+      btn.disabled = true;
+      btn.innerText = 'Preparando…';
+      msg.className = 'msg';
+      msg.style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          btn.disabled = false;
+          btn.innerText = '🖨️ Preparar lista de ese día';
+          if (res.ok) {
+            msg.className = 'msg ok';
+            msg.innerText = 'Lista lista, con ' + res.cantidad + (res.cantidad === 1 ? ' documento.' : ' documentos.');
+            links.innerHTML =
+              '<a class="primary" href="' + res.pdfUrl + '" target="_blank">🖨️ Abrir para imprimir</a>' +
+              '<details class="avanzado" style="margin-top:10px; text-align:left;">' +
+                '<summary>Otras opciones (Word, editar)</summary>' +
+                '<div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">' +
+                  '<a href="' + res.docxUrl + '" target="_blank">Descargar como Word (.docx)</a>' +
+                  '<a href="' + res.docUrl + '" target="_blank">Abrir para editar (Google Docs)</a>' +
+                '</div>' +
+              '</details>';
+          } else {
+            msg.className = 'msg err';
+            msg.innerText = res.error;
+          }
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          btn.innerText = '🖨️ Preparar lista de ese día';
+          msg.className = 'msg err';
+          msg.innerHTML = 'No se pudo preparar la lista. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+        })
+        .generarDocumentoDelDiaAtencionHospitalaria(TOKEN, fecha);
+    }
+  </script>
+</body>
+</html>

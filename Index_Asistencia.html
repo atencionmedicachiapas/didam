@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="<?= FAVICON_URL ?>">
+  <link rel="apple-touch-icon" href="<?= FAVICON_URL ?>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Asistencia DAM">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#00655F">
+  <style>
+    :root { --teal:#00948A; --teal-dark:#00655F; --maroon:#AE1F2D; --bg:#F4F7F6; --card-border:#e2e2e2; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; margin:0; background:var(--bg); color:#222; font-size:16px; }
+    header { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+    header img { width:44px; height:44px; border-radius:6px; background:#fff; padding:2px; }
+    header .titles h1 { margin:0; font-size:17px; line-height:1.25; }
+    header .titles p { margin:2px 0 0; font-size:12px; opacity:0.9; }
+    .counter { background:#fff; margin:12px; border-radius:10px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-left:6px solid var(--maroon); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+    .counter .label { font-size:14px; color:#555; }
+    .counter .value { font-size:28px; font-weight:bold; color:var(--maroon); }
+    .tabs { display:flex; background:#fff; border-bottom:1px solid #ddd; }
+    .tab { flex:1; padding:14px 4px; text-align:center; cursor:pointer; font-weight:bold; color:#666; font-size:14px; }
+    .tab.active { color:var(--teal-dark); border-bottom:3px solid var(--maroon); }
+    .panel { display:none; padding:16px; max-width:640px; margin:0 auto; }
+    .panel.active { display:block; }
+    label { display:block; margin-top:14px; font-size:14px; font-weight:bold; color:#333; }
+    .hint { margin:4px 0 0; font-size:13px; color:#777; font-weight:normal; line-height:1.4; }
+    input[type=text], input[type=date], textarea { width:100%; padding:11px; margin-top:5px; border:1.5px solid #ccc; border-radius:6px; font-size:16px; }
+    textarea { resize:vertical; min-height:55px; }
+    .toggle-row { display:flex; align-items:center; gap:10px; margin-top:16px; padding:10px 12px; background:#fff; border:1px solid var(--card-border); border-radius:8px; cursor:pointer; user-select:none; }
+    .toggle-row input[type=checkbox] { width: 22px; height: 22px; margin: 0; accent-color: var(--teal-dark); flex-shrink: 0; }
+    .toggle-row span { font-size: 14px; color: #444; }
+    .toggle-extra { display: none; margin-top: 4px; }
+    .toggle-extra.open { display: block; }
+    button { margin-top:20px; width:100%; padding:14px; background:var(--teal-dark); color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; }
+    button:disabled { background:#a9c4c1; }
+    .badge { display:inline-block; background:#e3f3f1; color:var(--teal-dark); padding:6px 12px; border-radius:20px; font-size:14px; margin-top:8px; font-weight:bold; }
+    .msg { margin-top:12px; padding:12px; border-radius:6px; font-size:15px; display:none; line-height:1.4; }
+    .msg.ok { background:#e6f4ea; color:#1e7e34; display:block; font-weight:bold; }
+    .msg.err { background:#fdeaea; color:#c0392b; display:block; }
+    .msg .tecnico { display:block; margin-top:6px; font-size:12px; color:#999; font-weight:normal; }
+    .card { background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:12px 14px; margin-top:10px; }
+    .card .top { display:flex; justify-content:space-between; font-size:13px; color:#777; }
+    .card .asunto { font-weight:bold; margin:5px 0; font-size:15px; }
+    .card a { color:var(--teal-dark); font-size:14px; text-decoration:none; font-weight:bold; }
+    .loading { text-align:center; color:#888; padding:20px; font-size:14px; }
+    .filebox { margin-top:5px; border:2px dashed #ccc; border-radius:8px; padding:14px; text-align:center; background:#fff; }
+    .filebox input[type=file] { width:100%; font-size:14px; }
+    .filebox .archivo-ok { display:none; margin-top:10px; padding:10px; background:#e6f4ea; color:#1e7e34; border-radius:6px; font-size:14px; font-weight:bold; word-break:break-all; }
+    .filebox .archivo-ok.show { display:block; }
+    details.avanzado { margin-top:14px; }
+    details.avanzado summary { cursor:pointer; color:var(--teal-dark); font-size:14px; font-weight:bold; padding:6px 0; }
+    .banner-exito { display:none; position:sticky; top:0; z-index:10; background:#1e7e34; color:#fff; padding:14px 16px; text-align:center; font-size:16px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+    .banner-exito.show { display:block; }
+    .ayuda-tab { font-size:13px; color:#666; background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px 12px; margin-bottom:12px; line-height:1.4; }
+    .carpeta-card { cursor:pointer; }
+    .carpeta-card .meta { font-size:13px; color:#777; margin-top:4px; }
+    .btn-secundario { width:auto; margin-top:0; padding:8px 14px; font-size:13px; background:#fff; color:var(--teal-dark); border:1.5px solid var(--teal-dark); }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="<?= FAVICON_URL ?>" alt="Logo">
+    <div class="titles">
+      <h1>Documentos firmados / importantes</h1>
+      <p>Dirección de Atención Médica · Instituto de Salud</p>
+    </div>
+  </header>
+
+  <div class="banner-exito" id="bannerExito">✓ Guardado correctamente</div>
+
+  <div class="counter">
+    <span class="label">📥 Hoy has subido</span>
+    <span class="value" id="contadorHoy">…</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="subir">📝 Subir documento</div>
+    <div class="tab" data-tab="ver">🔍 Ver subidos</div>
+    <div class="tab" data-tab="carpetas">🗂️ Mis carpetas</div>
+  </div>
+
+  <!-- ============ PANEL SUBIR ============ -->
+  <div class="panel active" id="panel-subir">
+    <div class="ayuda-tab">Esto es solo para documentos firmados o importantes de carácter general para la Dirección. Se pide el asunto y el archivo — no se pide número de oficio, remitente ni trámite.</div>
+
+    <label>Asunto *</label>
+    <textarea id="asunto" placeholder="¿De qué trata el documento?"></textarea>
+
+    <label>Documento (PDF) *</label>
+    <div class="filebox">
+      <input type="file" id="archivo" accept="application/pdf" onchange="mostrarArchivoSeleccionado()">
+      <div class="archivo-ok" id="archivoOk"></div>
+    </div>
+
+    <div id="bloqueAtrasado">
+      <div class="toggle-row" onclick="document.getElementById('chkAtrasado').click()">
+        <input type="checkbox" id="chkAtrasado" onclick="event.stopPropagation(); toggleAtrasado();">
+        <span>Este documento llegó otro día (no hoy)</span>
+      </div>
+      <div class="toggle-extra" id="extraAtrasado">
+        <label>¿Qué día se recibió?</label>
+        <input type="date" id="fechaRegistro">
+        <p class="hint">El número de folio de ese día se ajusta solo — no tienes que calcular nada.</p>
+      </div>
+    </div>
+
+    <details class="avanzado">
+      <summary>Más datos (opcional)</summary>
+      <label>Registrado por</label>
+      <input type="text" id="registradoPor" placeholder="Tu nombre">
+      <p class="hint">Se recuerda automáticamente para la próxima vez.</p>
+      <label>Observaciones</label>
+      <textarea id="observaciones" placeholder="Cualquier nota adicional"></textarea>
+    </details>
+
+    <button id="btnGuardar" onclick="guardar()">✓ Guardar este documento</button>
+    <div class="msg" id="msgRegistrar"></div>
+  </div>
+
+  <!-- ============ PANEL VER ============ -->
+  <div class="panel" id="panel-ver">
+    <div id="resultados"></div>
+  </div>
+
+  <!-- ============ PANEL MIS CARPETAS ============ -->
+  <div class="panel" id="panel-carpetas">
+    <div id="vistaListaCarpetas">
+      <div class="ayuda-tab">Crea una carpeta para juntar todos los documentos de un mismo caso o expediente, y súbelos ahí. Esto es aparte del registro rápido de "Subir documento" — puedes seguir usando ese para documentos sueltos.</div>
+
+      <label>Nombre de la carpeta nueva</label>
+      <input type="text" id="nombreCarpetaNueva" placeholder="Ej. Caso Pérez López">
+      <button id="btnCrearCarpeta" onclick="crearCarpeta()">+ Crear carpeta</button>
+      <div class="msg" id="msgCarpetas"></div>
+
+      <div id="listaCarpetas"></div>
+    </div>
+
+    <div id="vistaCarpetaAbierta" style="display:none;">
+      <button type="button" class="btn-secundario" onclick="cerrarCarpeta()">← Volver a mis carpetas</button>
+
+      <div class="counter">
+        <span class="label" id="nombreCarpetaAbierta" style="font-size:16px; font-weight:bold; color:#333;">…</span>
+        <button type="button" class="btn-secundario" onclick="mostrarRenombrar()">✎ Renombrar</button>
+      </div>
+
+      <div id="bloqueRenombrar" style="display:none;">
+        <label>Nuevo nombre de la carpeta</label>
+        <input type="text" id="nuevoNombreCarpeta">
+        <button id="btnGuardarNombre" onclick="guardarNombreCarpeta()">Guardar nombre</button>
+        <div class="msg" id="msgRenombrar"></div>
+      </div>
+
+      <label>Asunto *</label>
+      <textarea id="asuntoCarpeta" placeholder="¿De qué trata este documento?"></textarea>
+
+      <label>Documento (PDF) *</label>
+      <div class="filebox">
+        <input type="file" id="archivoCarpeta" accept="application/pdf" onchange="mostrarArchivoCarpetaSeleccionado()">
+        <div class="archivo-ok" id="archivoCarpetaOk"></div>
+      </div>
+
+      <div id="bloqueAtrasadoCarpeta">
+        <div class="toggle-row" onclick="document.getElementById('chkAtrasadoCarpeta').click()">
+          <input type="checkbox" id="chkAtrasadoCarpeta" onclick="event.stopPropagation(); toggleAtrasadoCarpeta();">
+          <span>Este documento llegó otro día (no hoy)</span>
+        </div>
+        <div class="toggle-extra" id="extraAtrasadoCarpeta">
+          <label>¿Qué día se recibió?</label>
+          <input type="date" id="fechaRegistroCarpeta">
+          <p class="hint">El número de folio de ese día se ajusta solo — no tienes que calcular nada.</p>
+        </div>
+      </div>
+
+      <details class="avanzado">
+        <summary>Más datos (opcional)</summary>
+        <label>Registrado por</label>
+        <input type="text" id="registradoPorCarpeta" placeholder="Tu nombre">
+        <label>Observaciones</label>
+        <textarea id="observacionesCarpeta" placeholder="Cualquier nota adicional"></textarea>
+      </details>
+
+      <button id="btnSubirACarpeta" onclick="subirACarpeta()">✓ Subir a esta carpeta</button>
+      <div class="msg" id="msgSubirCarpeta"></div>
+
+      <h3 style="margin-top:24px; margin-bottom:0; font-size:15px; color:#333;">Archivos en esta carpeta</h3>
+      <div id="archivosCarpeta"></div>
+    </div>
+  </div>
+
+  <script>
+    const TOKEN = "<?= TOKEN ?>";
+
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+        if (t.dataset.tab === 'ver') listar();
+        if (t.dataset.tab === 'carpetas') listarCarpetas();
+      });
+    });
+
+    function cargarContadorHoy() {
+      google.script.run
+        .withSuccessHandler(function (n) { document.getElementById('contadorHoy').innerText = n; })
+        .withFailureHandler(function (err) {
+          document.getElementById('contadorHoy').innerText = '⚠️';
+          console.error('obtenerConteoHoyAsistencia:', err.message);
+        })
+        .obtenerConteoHoyAsistencia(TOKEN);
+    }
+    cargarContadorHoy();
+
+    function hoyISO() {
+      const d = new Date();
+      const tz = d.getTimezoneOffset() * 60000;
+      return new Date(d - tz).toISOString().slice(0, 10);
+    }
+
+    const fechaRegistroInput = document.getElementById('fechaRegistro');
+    fechaRegistroInput.value = hoyISO();
+    const chkAtrasado = document.getElementById('chkAtrasado');
+    const extraAtrasado = document.getElementById('extraAtrasado');
+
+    function toggleAtrasado() {
+      if (chkAtrasado.checked) {
+        extraAtrasado.classList.add('open');
+      } else {
+        extraAtrasado.classList.remove('open');
+        fechaRegistroInput.value = hoyISO();
+      }
+    }
+
+    function mostrarArchivoSeleccionado() {
+      const fileInput = document.getElementById('archivo');
+      const caja = document.getElementById('archivoOk');
+      if (fileInput.files[0]) {
+        caja.innerText = '✓ Archivo listo: ' + fileInput.files[0].name;
+        caja.classList.add('show');
+      } else {
+        caja.classList.remove('show');
+      }
+    }
+
+    const registradoPorInput = document.getElementById('registradoPor');
+    try {
+      const nombreGuardado = localStorage.getItem('dam_asistencia_registrado_por');
+      if (nombreGuardado) registradoPorInput.value = nombreGuardado;
+    } catch (e) {}
+
+    function mostrarBannerExito(texto) {
+      const banner = document.getElementById('bannerExito');
+      banner.innerText = texto;
+      banner.classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(function () { banner.classList.remove('show'); }, 5000);
+    }
+
+    function guardar() {
+      const fileInput = document.getElementById('archivo');
+      const msg = document.getElementById('msgRegistrar');
+      const asunto = document.getElementById('asunto').value.trim();
+      const registradoPor = registradoPorInput.value.trim();
+      const observaciones = document.getElementById('observaciones').value.trim();
+      const fecha = fechaRegistroInput.value || hoyISO();
+
+      const faltantes = [];
+      if (!asunto) faltantes.push('el asunto');
+      if (!fileInput.files[0]) faltantes.push('el archivo PDF');
+      if (faltantes.length) {
+        msg.className = 'msg err';
+        msg.innerText = 'Falta completar: ' + faltantes.join(', ') + '.';
+        return;
+      }
+
+      const btn = document.getElementById('btnGuardar');
+      btn.disabled = true;
+      btn.innerText = 'Guardando…';
+      msg.className = 'msg'; msg.style.display = 'none';
+
+      try {
+        if (registradoPor) localStorage.setItem('dam_asistencia_registrado_por', registradoPor);
+      } catch (e) {}
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            btn.disabled = false;
+            btn.innerText = '✓ Guardar este documento';
+            if (!res.ok) {
+              msg.className = 'msg err';
+              msg.innerHTML = 'No se pudo guardar. Intenta de nuevo.' +
+                '<span class="tecnico">Detalle técnico: ' + res.error + '</span>';
+              return;
+            }
+            const texto = (res.fecha === hoyISO())
+              ? ('Guardado como el documento número ' + res.consecutivo + ' de hoy.')
+              : ('Guardado como atrasado — documento número ' + res.consecutivo + ' del ' + res.fecha + '.');
+            msg.className = 'msg ok';
+            msg.innerText = texto;
+            mostrarBannerExito('✓ ' + texto);
+            document.getElementById('asunto').value = '';
+            fileInput.value = '';
+            document.getElementById('archivoOk').classList.remove('show');
+            document.getElementById('observaciones').value = '';
+            if (chkAtrasado.checked) {
+              chkAtrasado.checked = false;
+              toggleAtrasado();
+            }
+            cargarContadorHoy();
+          })
+          .withFailureHandler(function (err) {
+            btn.disabled = false;
+            btn.innerText = '✓ Guardar este documento';
+            msg.className = 'msg err';
+            msg.innerHTML = 'No se pudo guardar. Revisa tu conexión e intenta de nuevo.' +
+              '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+          })
+          .registrarDocumentoAsistencia(TOKEN, {
+            fecha: fecha,
+            asunto: asunto,
+            registradoPor: registradoPor,
+            observaciones: observaciones,
+            archivoBase64: reader.result.split(',')[1],
+            archivoNombre: fileInput.files[0].name,
+            archivoTipo: fileInput.files[0].type
+          });
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    function listar() {
+      const div = document.getElementById('resultados');
+      div.innerHTML = '<div class="loading">Cargando…</div>';
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res.ok) {
+            div.innerHTML = '<div class="msg err" style="display:block;">' + res.error + '</div>';
+            return;
+          }
+          if (!res.rows.length) {
+            div.innerHTML = '<div class="loading">Todavía no has subido ningún documento.</div>';
+            return;
+          }
+          div.innerHTML = res.rows.map(function (r) {
+            return '<div class="card">' +
+              '<div class="top"><span>' + r.fecha + ' · #' + r.consecutivo + ' · ' + r.hora + '</span></div>' +
+              (r.asunto ? '<div class="asunto">' + escapeHtml(r.asunto) + '</div>' : '') +
+              (r.carpeta ? '<div style="font-size:13px;color:#666;">🗂️ Carpeta: ' + escapeHtml(r.carpeta) + '</div>' : '') +
+              (r.observaciones ? '<div>' + escapeHtml(r.observaciones) + '</div>' : '') +
+              (r.enlace ? '<a href="' + r.enlace + '" target="_blank">📄 Ver el documento →</a>' : '') +
+              '</div>';
+          }).join('');
+        })
+        .withFailureHandler(function (err) {
+          div.innerHTML = '<div class="msg err" style="display:block;">No se pudo cargar. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span></div>';
+        })
+        .buscarDocumentosAsistencia(TOKEN, { limite: 50, offset: 0 });
+    }
+
+    // ============ MIS CARPETAS ============
+    let carpetaAbiertaId = null;
+    let carpetaAbiertaNombre = '';
+    let carpetasData = {};
+    let archivosCarpetaData = {};
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function listarCarpetas() {
+      const div = document.getElementById('listaCarpetas');
+      div.innerHTML = '<div class="loading">Cargando…</div>';
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res.ok) {
+            div.innerHTML = '<div class="msg err" style="display:block;">' + res.error + '</div>';
+            return;
+          }
+          carpetasData = {};
+          if (!res.carpetas.length) {
+            div.innerHTML = '<div class="loading">Todavía no has creado ninguna carpeta.</div>';
+            return;
+          }
+          div.innerHTML = res.carpetas.map(function (c) {
+            carpetasData[c.carpetaId] = c;
+            return '<div class="card carpeta-card" onclick="abrirCarpeta(\'' + c.carpetaId + '\')">' +
+              '<div class="asunto">🗂️ ' + escapeHtml(c.nombre) + '</div>' +
+              '<div class="meta">' + c.cantidadArchivos + ' archivo(s) · última actividad ' + c.actualizada + '</div>' +
+              '</div>';
+          }).join('');
+        })
+        .withFailureHandler(function (err) {
+          div.innerHTML = '<div class="msg err" style="display:block;">No se pudo cargar. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span></div>';
+        })
+        .listarCarpetasAsistencia(TOKEN);
+    }
+
+    function crearCarpeta() {
+      const input = document.getElementById('nombreCarpetaNueva');
+      const nombre = input.value.trim();
+      const msg = document.getElementById('msgCarpetas');
+      if (!nombre) {
+        msg.className = 'msg err';
+        msg.innerText = 'Escribe un nombre para la carpeta.';
+        return;
+      }
+      const btn = document.getElementById('btnCrearCarpeta');
+      btn.disabled = true;
+      msg.className = 'msg'; msg.style.display = 'none';
+      google.script.run
+        .withSuccessHandler(function (res) {
+          btn.disabled = false;
+          if (!res.ok) {
+            msg.className = 'msg err';
+            msg.innerText = res.error;
+            return;
+          }
+          input.value = '';
+          listarCarpetas();
+          abrirCarpeta(res.carpetaId, res.nombre);
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          msg.className = 'msg err';
+          msg.innerHTML = 'No se pudo crear la carpeta. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+        })
+        .crearCarpetaAsistencia(TOKEN, nombre);
+    }
+
+    function abrirCarpeta(id, nombre) {
+      carpetaAbiertaId = id;
+      carpetaAbiertaNombre = nombre || (carpetasData[id] && carpetasData[id].nombre) || '';
+      document.getElementById('nombreCarpetaAbierta').innerText = '🗂️ ' + carpetaAbiertaNombre;
+      document.getElementById('vistaListaCarpetas').style.display = 'none';
+      document.getElementById('vistaCarpetaAbierta').style.display = 'block';
+      document.getElementById('bloqueRenombrar').style.display = 'none';
+      document.getElementById('asuntoCarpeta').value = '';
+      document.getElementById('archivoCarpeta').value = '';
+      document.getElementById('archivoCarpetaOk').classList.remove('show');
+      document.getElementById('observacionesCarpeta').value = '';
+      fechaRegistroCarpetaInput.value = hoyISO();
+      if (chkAtrasadoCarpeta.checked) { chkAtrasadoCarpeta.checked = false; toggleAtrasadoCarpeta(); }
+      cargarArchivosCarpeta();
+    }
+
+    function cerrarCarpeta() {
+      carpetaAbiertaId = null;
+      document.getElementById('vistaCarpetaAbierta').style.display = 'none';
+      document.getElementById('vistaListaCarpetas').style.display = 'block';
+      listarCarpetas();
+    }
+
+    function mostrarRenombrar() {
+      const bloque = document.getElementById('bloqueRenombrar');
+      document.getElementById('nuevoNombreCarpeta').value = carpetaAbiertaNombre;
+      bloque.style.display = (bloque.style.display === 'none') ? 'block' : 'none';
+    }
+
+    function guardarNombreCarpeta() {
+      const nuevo = document.getElementById('nuevoNombreCarpeta').value.trim();
+      const msg = document.getElementById('msgRenombrar');
+      if (!nuevo) {
+        msg.className = 'msg err';
+        msg.innerText = 'Escribe un nombre.';
+        return;
+      }
+      const btn = document.getElementById('btnGuardarNombre');
+      btn.disabled = true;
+      google.script.run
+        .withSuccessHandler(function (res) {
+          btn.disabled = false;
+          if (!res.ok) {
+            msg.className = 'msg err';
+            msg.innerText = res.error;
+            return;
+          }
+          carpetaAbiertaNombre = res.nombre;
+          document.getElementById('nombreCarpetaAbierta').innerText = '🗂️ ' + carpetaAbiertaNombre;
+          document.getElementById('bloqueRenombrar').style.display = 'none';
+          msg.className = 'msg'; msg.style.display = 'none';
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          msg.className = 'msg err';
+          msg.innerHTML = 'No se pudo renombrar. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+        })
+        .renombrarCarpetaAsistencia(TOKEN, carpetaAbiertaId, nuevo);
+    }
+
+    const fechaRegistroCarpetaInput = document.getElementById('fechaRegistroCarpeta');
+    fechaRegistroCarpetaInput.value = hoyISO();
+    const chkAtrasadoCarpeta = document.getElementById('chkAtrasadoCarpeta');
+    const extraAtrasadoCarpeta = document.getElementById('extraAtrasadoCarpeta');
+
+    function toggleAtrasadoCarpeta() {
+      if (chkAtrasadoCarpeta.checked) {
+        extraAtrasadoCarpeta.classList.add('open');
+      } else {
+        extraAtrasadoCarpeta.classList.remove('open');
+        fechaRegistroCarpetaInput.value = hoyISO();
+      }
+    }
+
+    function mostrarArchivoCarpetaSeleccionado() {
+      const fileInput = document.getElementById('archivoCarpeta');
+      const caja = document.getElementById('archivoCarpetaOk');
+      if (fileInput.files[0]) {
+        caja.innerText = '✓ Archivo listo: ' + fileInput.files[0].name;
+        caja.classList.add('show');
+      } else {
+        caja.classList.remove('show');
+      }
+    }
+
+    const registradoPorCarpetaInput = document.getElementById('registradoPorCarpeta');
+    try {
+      const nombreGuardadoCarpeta = localStorage.getItem('dam_asistencia_registrado_por');
+      if (nombreGuardadoCarpeta) registradoPorCarpetaInput.value = nombreGuardadoCarpeta;
+    } catch (e) {}
+
+    function subirACarpeta() {
+      const fileInput = document.getElementById('archivoCarpeta');
+      const msg = document.getElementById('msgSubirCarpeta');
+      const asunto = document.getElementById('asuntoCarpeta').value.trim();
+      const registradoPor = registradoPorCarpetaInput.value.trim();
+      const observaciones = document.getElementById('observacionesCarpeta').value.trim();
+      const fecha = fechaRegistroCarpetaInput.value || hoyISO();
+
+      const faltantes = [];
+      if (!asunto) faltantes.push('el asunto');
+      if (!fileInput.files[0]) faltantes.push('el archivo PDF');
+      if (faltantes.length) {
+        msg.className = 'msg err';
+        msg.innerText = 'Falta completar: ' + faltantes.join(', ') + '.';
+        return;
+      }
+
+      const btn = document.getElementById('btnSubirACarpeta');
+      btn.disabled = true;
+      btn.innerText = 'Subiendo…';
+      msg.className = 'msg'; msg.style.display = 'none';
+
+      try {
+        if (registradoPor) localStorage.setItem('dam_asistencia_registrado_por', registradoPor);
+      } catch (e) {}
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            btn.disabled = false;
+            btn.innerText = '✓ Subir a esta carpeta';
+            if (!res.ok) {
+              msg.className = 'msg err';
+              msg.innerHTML = 'No se pudo guardar. Intenta de nuevo.' +
+                '<span class="tecnico">Detalle técnico: ' + res.error + '</span>';
+              return;
+            }
+            const texto = (res.fecha === hoyISO())
+              ? ('Guardado en "' + carpetaAbiertaNombre + '" como el documento número ' + res.consecutivo + ' de hoy.')
+              : ('Guardado en "' + carpetaAbiertaNombre + '" como atrasado — documento número ' + res.consecutivo + ' del ' + res.fecha + '.');
+            msg.className = 'msg ok';
+            msg.innerText = texto;
+            mostrarBannerExito('✓ ' + texto);
+            document.getElementById('asuntoCarpeta').value = '';
+            fileInput.value = '';
+            document.getElementById('archivoCarpetaOk').classList.remove('show');
+            document.getElementById('observacionesCarpeta').value = '';
+            if (chkAtrasadoCarpeta.checked) {
+              chkAtrasadoCarpeta.checked = false;
+              toggleAtrasadoCarpeta();
+            }
+            cargarContadorHoy();
+            cargarArchivosCarpeta();
+          })
+          .withFailureHandler(function (err) {
+            btn.disabled = false;
+            btn.innerText = '✓ Subir a esta carpeta';
+            msg.className = 'msg err';
+            msg.innerHTML = 'No se pudo guardar. Revisa tu conexión e intenta de nuevo.' +
+              '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+          })
+          .subirArchivoCarpetaAsistencia(TOKEN, carpetaAbiertaId, {
+            fecha: fecha,
+            asunto: asunto,
+            registradoPor: registradoPor,
+            observaciones: observaciones,
+            archivoBase64: reader.result.split(',')[1],
+            archivoNombre: fileInput.files[0].name,
+            archivoTipo: fileInput.files[0].type
+          });
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    function cargarArchivosCarpeta() {
+      const div = document.getElementById('archivosCarpeta');
+      div.innerHTML = '<div class="loading">Cargando…</div>';
+      archivosCarpetaData = {};
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res.ok) {
+            div.innerHTML = '<div class="msg err" style="display:block;">' + res.error + '</div>';
+            return;
+          }
+          if (!res.archivos.length) {
+            div.innerHTML = '<div class="loading">Todavía no hay archivos en esta carpeta.</div>';
+            return;
+          }
+          div.innerHTML = res.archivos.map(function (r) {
+            const idSuf = r.fecha.replace(/-/g, '') + '_' + r.consecutivo;
+            archivosCarpetaData[idSuf] = r;
+            return '<div class="card">' +
+              '<div class="top"><span>' + r.fecha + ' · #' + r.consecutivo + ' · ' + r.hora + '</span></div>' +
+              (r.asunto ? '<div class="asunto">' + escapeHtml(r.asunto) + '</div>' : '') +
+              (r.observaciones ? '<div>' + escapeHtml(r.observaciones) + '</div>' : '') +
+              (r.enlace ? '<a href="' + r.enlace + '" target="_blank">📄 Ver el documento →</a>' : '') +
+              ' &nbsp; <a href="#" onclick="event.preventDefault(); toggleCorregir(\'' + idSuf + '\');">✎ Corregir</a>' +
+              '<div class="toggle-extra" id="editBox_' + idSuf + '">' +
+                '<label>Asunto</label>' +
+                '<textarea id="editAsunto_' + idSuf + '">' + escapeHtml(r.asunto) + '</textarea>' +
+                '<label>Observaciones</label>' +
+                '<textarea id="editObs_' + idSuf + '">' + escapeHtml(r.observaciones) + '</textarea>' +
+                '<label>Reemplazar el archivo (opcional)</label>' +
+                '<div class="filebox"><input type="file" id="editArchivo_' + idSuf + '" accept="application/pdf"></div>' +
+                '<p class="hint">Si subes un archivo aquí, reemplaza el enlace por el nuevo — el archivo anterior NO se borra, se queda guardado en Drive.</p>' +
+                '<button type="button" onclick="guardarCorreccion(\'' + idSuf + '\')">Guardar corrección</button>' +
+                '<div class="msg" id="editMsg_' + idSuf + '"></div>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        })
+        .withFailureHandler(function (err) {
+          div.innerHTML = '<div class="msg err" style="display:block;">No se pudo cargar. Intenta de nuevo.' +
+            '<span class="tecnico">Detalle técnico: ' + err.message + '</span></div>';
+        })
+        .listarArchivosCarpetaAsistencia(TOKEN, carpetaAbiertaId);
+    }
+
+    function toggleCorregir(idSuf) {
+      document.getElementById('editBox_' + idSuf).classList.toggle('open');
+    }
+
+    function guardarCorreccion(idSuf) {
+      const r = archivosCarpetaData[idSuf];
+      if (!r) return;
+      const nuevoAsunto = document.getElementById('editAsunto_' + idSuf).value.trim();
+      const nuevaObs = document.getElementById('editObs_' + idSuf).value.trim();
+      const fileInput = document.getElementById('editArchivo_' + idSuf);
+      const msg = document.getElementById('editMsg_' + idSuf);
+      msg.className = 'msg'; msg.style.display = 'none';
+
+      const datosBase = {
+        fecha: r.fecha,
+        consecutivo: r.consecutivo,
+        asunto: nuevoAsunto,
+        registradoPor: r.registradoPor,
+        observaciones: nuevaObs,
+        original: { asunto: r.asunto, registradoPor: r.registradoPor, observaciones: r.observaciones }
+      };
+
+      function enviar(datos) {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res.ok) {
+              msg.className = 'msg err';
+              msg.innerText = res.error;
+              return;
+            }
+            msg.className = 'msg ok';
+            msg.innerText = 'Corregido.';
+            cargarArchivosCarpeta();
+          })
+          .withFailureHandler(function (err) {
+            msg.className = 'msg err';
+            msg.innerHTML = 'No se pudo corregir. Intenta de nuevo.' +
+              '<span class="tecnico">Detalle técnico: ' + err.message + '</span>';
+          })
+          .corregirArchivoCarpetaAsistencia(TOKEN, datos);
+      }
+
+      if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          datosBase.archivoBase64 = reader.result.split(',')[1];
+          datosBase.archivoNombre = fileInput.files[0].name;
+          datosBase.archivoTipo = fileInput.files[0].type;
+          enviar(datosBase);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        enviar(datosBase);
+      }
+    }
+  </script>
+</body>
+</html>
