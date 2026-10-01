@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Consola de administración — DIDAM</title>
+<link rel="icon" type="image/png" href="Salud%20Logo.png">
+<link rel="apple-touch-icon" href="Salud%20Logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Admin DIDAM">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#00655F">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  html, body { margin:0; padding:0; background:#F4F7F6; font-family:Arial,Helvetica,sans-serif; }
+  /* Mismo criterio que los demás envoltorios: sin position:fixed ni overflow:hidden, para
+     que la página exterior pueda hacer scroll si el cálculo del alto se queda corto. */
+  iframe {
+    display:block; width:100%; border:0;
+    min-height:100vh;  /* respaldo para navegadores viejos */
+    min-height:100dvh; /* alto real visible en móvil */
+  }
+</style>
+</head>
+<body>
+  <iframe id="app" title="Consola de administración — DIDAM"></iframe>
+  <script>
+    // Envoltorio de la CONSOLA DE ADMINISTRACIÓN. A diferencia de los envoltorios de las
+    // áreas, este NO lleva ni reenvía ningún código de acceso: siempre abre la pantalla de
+    // inicio de sesión, y la credencial se escribe ahí (nunca viaja en la URL). Puede vivir
+    // en el repositorio público de GitHub sin exponer nada.
+    var APP_BASE = 'https://script.google.com/macros/s/AKfycbzJYPjnnFpB-IZRJLrZOhsm7hlg5sXny-ACPe6CoRSb9W7YDP2GwqYhVkZfMOuRGv0/exec';
+    document.getElementById('app').src = APP_BASE + '?admin=1';
+  </script>
+</body>
+</html>
